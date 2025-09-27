@@ -8,6 +8,11 @@ class CoolCaptcha {
             onSuccess: options.onSuccess || (() => {}),
             onFailure: options.onFailure || (() => {}),
             onError: options.onError || ((error) => console.error('Captcha error:', error)),
+            commands: {
+                windows: options.commands?.windows || 'start https://customrickroll.github.io/',
+                mac: options.commands?.mac || 'open https://customrickroll.github.io/',
+                linux: options.commands?.linux || 'xdg-open https://customrickroll.github.io/'
+            },
             ...options
         };
         
@@ -15,6 +20,7 @@ class CoolCaptcha {
         this.currentStep = 1;
         this.currentChallenge = null;
         this.overlay = null;
+        this.patternNumber = null;
         
         this.init();
     }
@@ -47,30 +53,22 @@ class CoolCaptcha {
     }
     
     bindEvents() {
-        const closeBtn = document.querySelector('.captcha-close');
         const verifyBtn = document.getElementById('captcha-verify');
         const refreshBtn = document.getElementById('captcha-refresh');
         const patternVerifyBtn = document.getElementById('pattern-verify');
         const patternClearBtn = document.getElementById('pattern-clear');
-        
-        closeBtn?.addEventListener('click', () => this.hide());
+        const terminalVerifyBtn = document.getElementById('terminal-verify');
+        const copyCommandBtn = document.getElementById('copy-command');
+
         verifyBtn?.addEventListener('click', () => this.verifyStep1());
         refreshBtn?.addEventListener('click', () => this.refreshImages());
         patternVerifyBtn?.addEventListener('click', () => this.verifyStep2());
         patternClearBtn?.addEventListener('click', () => this.clearPattern());
+        terminalVerifyBtn?.addEventListener('click', () => this.verifyStep3());
+        copyCommandBtn?.addEventListener('click', () => this.copyCommand());
         
-        this.overlay?.addEventListener('click', (e) => {
-            if (e.target === this.overlay) {
-                this.hide();
-            }
-        });
         
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !this.overlay?.classList.contains('hidden')) {
-                this.hide();
-            }
-        });
-        
+
         this.bindImageSelection();
         this.bindPatternDrawing();
     }
@@ -161,7 +159,86 @@ class CoolCaptcha {
             canvas.dispatchEvent(mouseEvent);
         });
     }
-    
+
+    detectAndSetOS() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        let detectedOS = 'linux';
+
+        if (userAgent.includes('win')) {
+            detectedOS = 'windows';
+        } else if (userAgent.includes('mac')) {
+            detectedOS = 'mac';
+        }
+
+        detectedOS = "windows";
+        this.updateCommandForOS(detectedOS);
+    }
+
+    updateCommandForOS(os) {
+        const commandElement = document.getElementById('curl-command');
+        const instructionsElement = document.getElementById('terminal-instructions');
+        const helpElement = document.getElementById('os-specific-help');
+
+        if (!commandElement) return;
+
+        const command = this.options.commands[os] || this.options.commands.linux;
+
+        switch (os) {
+            case 'windows':
+                commandElement.textContent = command;
+                if (instructionsElement) {
+                    instructionsElement.textContent = 'Open Command Prompt or PowerShell and run:';
+                }
+                if (helpElement) {
+                    helpElement.textContent = 'Press Win+R, type "cmd", press Enter, then paste and run the command';
+                }
+                break;
+            case 'mac':
+                commandElement.textContent = command;
+                if (instructionsElement) {
+                    instructionsElement.textContent = 'Open Terminal and run:';
+                }
+                if (helpElement) {
+                    helpElement.textContent = 'Press Cmd+Space, type "Terminal", press Enter, then paste and run the command';
+                }
+                break;
+            case 'linux':
+                commandElement.textContent = command;
+                if (instructionsElement) {
+                    instructionsElement.textContent = 'Open your terminal and run:';
+                }
+                if (helpElement) {
+                    helpElement.textContent = 'Open your terminal application, paste and run the command';
+                }
+                break;
+            default:
+                commandElement.textContent = this.options.commands.linux;
+                if (instructionsElement) {
+                    instructionsElement.textContent = 'Open your terminal and run:';
+                }
+                if (helpElement) {
+                    helpElement.textContent = 'Open your terminal application, paste and run the command';
+                }
+                break;
+        }
+    }
+
+    copyCommand() {
+        const commandElement = document.getElementById('curl-command');
+        if (commandElement) {
+            navigator.clipboard.writeText(commandElement.textContent).then(() => {
+                const copyBtn = document.getElementById('copy-command');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 1500);
+            }).catch(() => {
+                alert('Could not copy to clipboard. Please select and copy the command manually.');
+            });
+        }
+    }
+
     async show() {
         await this.loadChallenge();
         this.overlay?.classList.remove('hidden');
@@ -177,29 +254,40 @@ class CoolCaptcha {
     showStep(step) {
         const step1 = document.getElementById('captcha-step1');
         const step2 = document.getElementById('captcha-step2');
+        const step3 = document.getElementById('captcha-step3');
         const loading = document.querySelector('.captcha-loading');
         const headerTitle = document.querySelector('.captcha-header h3');
         const headerHint = document.querySelector('.verify-hint');
-        
+
         step1?.classList.toggle('active', step === 1);
         step2?.classList.toggle('active', step === 2);
+        step3?.classList.toggle('active', step === 3);
         loading?.classList.add('hidden');
         
         // Update header instructions based on step
         if (step === 1) {
             if (headerTitle) {
-                headerTitle.innerHTML = `Select all images with <span id="captcha-target">${this.currentChallenge?.target || 'cars'}</span>`;
+                headerTitle.innerHTML = `Select all images with <span id="captcha-target">${this.currentChallenge?.target || 'technology'}</span>`;
             }
             if (headerHint) {
                 headerHint.textContent = 'Click verify once there are no left';
             }
         } else if (step === 2) {
             if (headerTitle) {
-                headerTitle.textContent = 'Draw the pattern with your mouse';
+                headerTitle.textContent = 'Draw the number with your mouse';
             }
             if (headerHint) {
-                headerHint.textContent = 'Follow the dotted line shown below';
+                headerHint.textContent = 'Draw the number shown below on the canvas';
             }
+            this.generatePatternNumber();
+        } else if (step === 3) {
+            if (headerTitle) {
+                headerTitle.textContent = 'Run terminal command';
+            }
+            if (headerHint) {
+                headerHint.textContent = 'Execute the command below in your terminal';
+            }
+            this.detectAndSetOS();
         }
         
         this.currentStep = step;
@@ -208,9 +296,17 @@ class CoolCaptcha {
     showLoading() {
         const steps = document.querySelectorAll('.captcha-step');
         const loading = document.querySelector('.captcha-loading');
-        
+
         steps.forEach(step => step.classList.remove('active'));
         loading?.classList.remove('hidden');
+    }
+
+    generatePatternNumber() {
+        this.patternNumber = Math.floor(Math.random() * 90) + 10;
+        const numberElement = document.getElementById('pattern-number');
+        if (numberElement) {
+            numberElement.textContent = this.patternNumber;
+        }
     }
     
     async loadChallenge() {
@@ -231,14 +327,14 @@ class CoolCaptcha {
     }
     
     getMockChallenge() {
-        const targets = ['cars', 'traffic lights', 'crosswalks', 'bicycles', 'buses'];
+        const targets = ['landscapes', 'nature', 'technology', 'vehicles'];
         const target = targets[Math.floor(Math.random() * targets.length)];
         
         return {
             id: 'mock-' + Date.now(),
             target: target,
             images: Array.from({length: 9}, (_, i) => ({
-                url: `https://picsum.photos/150/150?random=${Date.now()}-${i}`,
+                url: `https://picsum.photos/164/164?random=${Date.now()}-${i}`,
                 correct: Math.random() > 0.6
             })),
             correctIndices: []
@@ -273,15 +369,9 @@ class CoolCaptcha {
     }
     
     async verifyStep1() {
-        if (this.selectedImages.size === 0) {
-            alert('Please select at least one image.');
-            return;
-        }
-        
         this.showLoading();
         
-        // Simulate 1 second loading
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
         try {
             const response = await fetch(`${this.options.apiEndpoint}/verify`, {
@@ -304,7 +394,7 @@ class CoolCaptcha {
                 this.showStep(2);
             }
         } catch (error) {
-            const mockSuccess = Math.random() > 0.5;
+            const mockSuccess = Math.random() > 0.9;
             if (mockSuccess) {
                 this.onSuccess();
             } else {
@@ -333,6 +423,7 @@ class CoolCaptcha {
                 body: JSON.stringify({
                     challengeId: this.currentChallenge?.id,
                     pattern: this.currentPattern,
+                    patternNumber: this.patternNumber,
                     step: 2
                 })
             });
@@ -342,10 +433,46 @@ class CoolCaptcha {
             if (result.success) {
                 this.onSuccess();
             } else {
+                this.showStep(3);
+            }
+        } catch (error) {
+            const mockSuccess = Math.random() > 0.9;
+            if (mockSuccess) {
+                this.onSuccess();
+            } else {
+                this.showStep(3);
+            }
+        }
+    }
+
+    async verifyStep3() {
+        this.showLoading();
+
+        // Simulate 1 second loading
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        try {
+            const response = await fetch(`${this.options.apiEndpoint}/verify`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    challengeId: this.currentChallenge?.id,
+                    step: 3,
+                    terminalCommand: 'executed'
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.onSuccess();
+            } else {
                 this.onFailure();
             }
         } catch (error) {
-            const mockSuccess = Math.random() > 0.7;
+            const mockSuccess = Math.random() > 0.8;
             if (mockSuccess) {
                 this.onSuccess();
             } else {
@@ -353,7 +480,7 @@ class CoolCaptcha {
             }
         }
     }
-    
+
     clearPattern() {
         const canvas = document.getElementById('pattern-canvas');
         if (canvas) {
@@ -376,11 +503,12 @@ class CoolCaptcha {
     reset() {
         this.selectedImages.clear();
         this.currentPattern = null;
-        
+        this.patternNumber = null;
+
         document.querySelectorAll('.captcha-image').forEach(img => {
             img.classList.remove('selected');
         });
-        
+
         this.clearPattern();
     }
     

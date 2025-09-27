@@ -21,7 +21,7 @@
 .captcha-modal {
     background: white;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 400px;
+    max-width: 500px;
     width: 90%;
     border-radius: 2px;
     max-height: 90vh;
@@ -35,9 +35,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 32px;
+    padding: 16px;
     border-bottom: 1px solid #e0e0e0;
     background: #3e83d3;
+}
+
+.captcha-logo {
+    display: flex;
+    align-items: center;
+}
+
+.captcha-logo svg {
+    height: 128px;
+    width: 128px;
 }
 
 .captcha-header h3 {
@@ -101,7 +111,7 @@
     gap: 4px;
     margin-top: 6px;
     margin-bottom: 6px;
-    max-width: 400px;
+    max-width: 500px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -144,6 +154,23 @@
     opacity: 1;
 }
 
+.pattern-number-display {
+    text-align: center;
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.pattern-number-display #pattern-number {
+    font-size: 48px;
+    font-weight: bold;
+    color: #007bff;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 4px;
+}
+
 .captcha-pattern-area {
     text-align: center;
     margin-bottom: 20px;
@@ -165,6 +192,73 @@
     margin: 0;
     font-size: 14px;
     color: #666;
+}
+
+
+.terminal-command-area {
+    margin-bottom: 20px;
+}
+
+.command-instructions {
+    text-align: center;
+    margin-bottom: 12px;
+    margin-top: 9px;
+}
+
+.command-instructions p {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.command-box {
+    position: relative;
+    background: #2d3748;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 12px;
+    font-family: 'Courier New', monospace;
+}
+
+.command-box code {
+    color: #68d391;
+    font-size: 14px;
+    word-break: break-all;
+    display: block;
+    padding-right: 60px;
+}
+
+.copy-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    background: #4a5568;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.copy-button:hover {
+    background: #2d3748;
+}
+
+.copy-button:active {
+    background: #1a202c;
+}
+
+.command-help {
+    text-align: center;
+}
+
+.command-help p {
+    margin: 0;
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
 }
 
 .captcha-actions {
