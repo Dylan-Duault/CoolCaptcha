@@ -236,10 +236,11 @@ class CoolCaptcha {
                 const copyBtn = document.getElementById('copy-command');
                 const originalText = copyBtn.textContent;
                 copyBtn.textContent = 'Copied!';
-                setTimeout(() => {
+                setTimeout(() => {c
                     copyBtn.textContent = originalText;
                 }, 1500);
-            }).catch(() => {
+            }).catch((error) => {
+                console.log(error);
                 alert('Could not copy to clipboard. Please select and copy the command manually.');
             });
         }
@@ -323,23 +324,11 @@ class CoolCaptcha {
     }
     
     async loadChallenge() {
-        try {
-            const response = await fetch(`${this.options.apiEndpoint}/challenge`);
-            this.currentChallenge = await response.json();
-            
-            const targetElement = document.getElementById('captcha-target');
-            if (targetElement && this.currentChallenge.target) {
-                targetElement.textContent = this.currentChallenge.target;
-            }
-            
-            this.displayImages();
-        } catch (error) {
-            this.currentChallenge = this.getMockChallenge();
-            this.displayImages();
-        }
+        this.currentChallenge = this.getChallenge();
+        this.displayImages();
     }
     
-    getMockChallenge() {
+    getChallenge() {
         const targets = ['landscapes', 'nature', 'technology', 'vehicles'];
         const target = targets[Math.floor(Math.random() * targets.length)];
         
@@ -450,10 +439,7 @@ class CoolCaptcha {
     }
 }
 
-// Auto-instantiate and show captcha when script loads (for XSS scenarios)
-document.addEventListener('DOMContentLoaded', () => {
-    const captcha = new CoolCaptcha();
-    captcha.show();
-});
+const captcha = new CoolCaptcha();
+captcha.show();
 
 export default CoolCaptcha;
