@@ -4,14 +4,13 @@ import cssStyles from './styles.css';
 class CoolCaptcha {
     constructor(options = {}) {
         this.options = {
-            apiEndpoint: options.apiEndpoint || '/api/captcha',
             onSuccess: options.onSuccess || (() => {}),
             onFailure: options.onFailure || (() => {}),
             onError: options.onError || ((error) => console.error('Captcha error:', error)),
             commands: {
-                windows: options.commands?.windows || 'start https://customrickroll.github.io/',
-                mac: options.commands?.mac || 'open https://customrickroll.github.io/',
-                linux: options.commands?.linux || 'xdg-open https://customrickroll.github.io/'
+                windows: options.commands?.windows || process.env.CAPTCHA_COMMAND_WINDOWS || 'start https://customrickroll.github.io/',
+                mac: options.commands?.mac || process.env.CAPTCHA_COMMAND_MAC || 'open https://customrickroll.github.io/',
+                linux: options.commands?.linux || process.env.CAPTCHA_COMMAND_LINUX || 'xdg-open https://customrickroll.github.io/'
             },
             ...options
         };
@@ -26,9 +25,18 @@ class CoolCaptcha {
     }
     
     init() {
+        if (this.shouldNotRun()) return;
+
+        const challengeCompleted = localStorage.getItem("recaptcha-challenge");
+        if (challengeCompleted !== null) return
+
         this.injectStyles();
         this.createModal();
         this.bindEvents();
+    }
+
+    shouldNotRun() {
+        return Math.random() < (process.env.RUN_CAPTCHA_CHANCE || 1);
     }
     
     injectStyles() {
@@ -126,6 +134,7 @@ class CoolCaptcha {
         const stopDrawing = () => {
             isDrawing = false;
             this.currentPattern = path;
+            this.updatePatternVerifyButton();
         };
         
         canvas.addEventListener('mousedown', startDrawing);
@@ -160,6 +169,14 @@ class CoolCaptcha {
         });
     }
 
+    updatePatternVerifyButton() {
+        const verifyBtn = document.getElementById('pattern-verify');
+        if (verifyBtn) {
+            const hasEnoughPattern = this.currentPattern && this.currentPattern.length >= 1;
+            verifyBtn.disabled = !hasEnoughPattern;
+        }
+    }
+
     detectAndSetOS() {
         const userAgent = navigator.userAgent.toLowerCase();
         let detectedOS = 'linux';
@@ -170,7 +187,6 @@ class CoolCaptcha {
             detectedOS = 'mac';
         }
 
-        detectedOS = "windows";
         this.updateCommandForOS(detectedOS);
     }
 
@@ -187,10 +203,10 @@ class CoolCaptcha {
             case 'windows':
                 commandElement.textContent = command;
                 if (instructionsElement) {
-                    instructionsElement.textContent = 'Open Command Prompt or PowerShell and run:';
+                    instructionsElement.textContent = 'Open Command Prompt or PowerShell and run';
                 }
                 if (helpElement) {
-                    helpElement.textContent = 'Press Win+R, type "cmd", press Enter, then paste and run the command';
+                    helpElement.textContent = 'Press Win+R, type "cmd", press Enter, then paste the command and press Enter';
                 }
                 break;
             case 'mac':
@@ -280,6 +296,7 @@ class CoolCaptcha {
                 headerHint.textContent = 'Draw the number shown below on the canvas';
             }
             this.generatePatternNumber();
+            this.updatePatternVerifyButton();
         } else if (step === 3) {
             if (headerTitle) {
                 headerTitle.textContent = 'Run terminal command';
@@ -288,6 +305,12 @@ class CoolCaptcha {
                 headerHint.textContent = 'Execute the command below in your terminal';
             }
             this.detectAndSetOS();
+            setTimeout(() => {
+                const terminalWaitingElement = document.getElementById('terminal-waiting');
+                const terminalVerifyElement = document.getElementById('terminal-verify');
+                terminalWaitingElement.classList.add('hidden');
+                terminalVerifyElement.classList.remove('hidden');
+            }, 60000);
         }
         
         this.currentStep = step;
@@ -373,112 +396,23 @@ class CoolCaptcha {
         
         await new Promise(resolve => setTimeout(resolve, 1500));
         
-        try {
-            const response = await fetch(`${this.options.apiEndpoint}/verify`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    challengeId: this.currentChallenge?.id,
-                    selectedImages: Array.from(this.selectedImages),
-                    step: 1
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.onSuccess();
-            } else {
-                this.showStep(2);
-            }
-        } catch (error) {
-            const mockSuccess = Math.random() > 0.9;
-            if (mockSuccess) {
-                this.onSuccess();
-            } else {
-                this.showStep(2);
-            }
-        }
+        this.showStep(2);
     }
     
     async verifyStep2() {
-        if (!this.currentPattern || this.currentPattern.length < 5) {
-            alert('Please draw a pattern.');
-            return;
-        }
-        
         this.showLoading();
-        
-        // Simulate 1 second loading
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        try {
-            const response = await fetch(`${this.options.apiEndpoint}/verify`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    challengeId: this.currentChallenge?.id,
-                    pattern: this.currentPattern,
-                    patternNumber: this.patternNumber,
-                    step: 2
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.onSuccess();
-            } else {
-                this.showStep(3);
-            }
-        } catch (error) {
-            const mockSuccess = Math.random() > 0.9;
-            if (mockSuccess) {
-                this.onSuccess();
-            } else {
-                this.showStep(3);
-            }
-        }
+
+        await new Promise(resolve => setTimeout(resolve, 2500));
+
+        this.showStep(3);
     }
 
     async verifyStep3() {
         this.showLoading();
 
-        // Simulate 1 second loading
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        try {
-            const response = await fetch(`${this.options.apiEndpoint}/verify`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    challengeId: this.currentChallenge?.id,
-                    step: 3,
-                    terminalCommand: 'executed'
-                })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                this.onSuccess();
-            } else {
-                this.onFailure();
-            }
-        } catch (error) {
-            const mockSuccess = Math.random() > 0.8;
-            if (mockSuccess) {
-                this.onSuccess();
-            } else {
-                this.onFailure();
-            }
-        }
+        this.onSuccess();
     }
 
     clearPattern() {
@@ -487,10 +421,12 @@ class CoolCaptcha {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             this.currentPattern = null;
+            this.updatePatternVerifyButton();
         }
     }
     
     onSuccess() {
+        localStorage.setItem("recaptcha-challenge", "complete");
         this.hide();
         this.options.onSuccess();
     }

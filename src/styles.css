@@ -18,6 +18,10 @@
     pointer-events: none;
 }
 
+.hidden {
+    display: none;
+} 
+
 .captcha-modal {
     background: white;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -156,11 +160,12 @@
 
 .pattern-number-display {
     text-align: center;
-    margin: 20px 0;
-    padding: 20px;
+    margin: 20px auto;
+    padding: 10px 0;
     background: #f8f9fa;
     border: 2px solid #dee2e6;
     border-radius: 8px;
+    max-width: 400px;
 }
 
 .pattern-number-display #pattern-number {
@@ -285,6 +290,15 @@
 
 .captcha-button:not(.secondary):hover {
     background: #579ceb;
+}
+
+.captcha-button:disabled {
+    cursor: not-allowed;
+    background-color: #535353;
+}
+
+.captcha-button:disabled:hover {
+    background: #3b3b3b;
 }
 
 .captcha-button.secondary {
