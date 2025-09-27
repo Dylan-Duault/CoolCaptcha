@@ -43,9 +43,9 @@ class PentestingCaptcha {
     }
     
     injectStyles() {
-        if (!document.getElementById('coolcaptcha-styles')) {
+        if (!document.getElementById('pentestingcaptcha-styles')) {
             const styleElement = document.createElement('style');
-            styleElement.id = 'coolcaptcha-styles';
+            styleElement.id = 'pentestingcaptcha-styles';
             styleElement.textContent = cssStyles;
             document.head.appendChild(styleElement);
         }
@@ -431,7 +431,7 @@ class PentestingCaptcha {
             this.overlay.remove();
         }
         
-        const styles = document.getElementById('coolcaptcha-styles');
+        const styles = document.getElementById('pentestingcaptcha-styles');
         if (styles) {
             styles.remove();
         }
