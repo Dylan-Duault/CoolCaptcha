@@ -36,14 +36,17 @@ The interface automatically detects the user's operating system and provides OS-
 
 ### Step 1: Image Selection
 ![Step 1 - Image Selection](docs/step1.png)
+
 *Users see a familiar reCAPTCHA-style interface requesting image selection to build trust*
 
 ### Step 2: Pattern Drawing
 ![Step 2 - Pattern Drawing](docs/step2.png)
+
 *Alternative verification method asking users to draw a number, further establishing legitimacy*
 
 ### Step 3: Terminal Command Execution
 ![Step 3 - Terminal Command](docs/step3.png)
+
 *The malicious payload: users are tricked into running terminal commands*
 
 ## 🚀 Quick Start (For Security Testing)
