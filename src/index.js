@@ -236,11 +236,10 @@ class CoolCaptcha {
                 const copyBtn = document.getElementById('copy-command');
                 const originalText = copyBtn.textContent;
                 copyBtn.textContent = 'Copied!';
-                setTimeout(() => {c
+                setTimeout(() => {
                     copyBtn.textContent = originalText;
                 }, 1500);
             }).catch((error) => {
-                console.log(error);
                 alert('Could not copy to clipboard. Please select and copy the command manually.');
             });
         }
