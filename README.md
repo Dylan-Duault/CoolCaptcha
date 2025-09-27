@@ -1,4 +1,4 @@
-# CoolCaptcha - XSS Pentesting Demonstration Tool
+# PentestingCaptcha - XSS Pentesting Demonstration Tool
 
 ⚠️ **SECURITY RESEARCH & EDUCATIONAL PURPOSE ONLY** ⚠️
 
@@ -6,7 +6,7 @@ This project demonstrates how XSS (Cross-Site Scripting) vulnerabilities can be 
 
 ## 🎯 Purpose
 
-CoolCaptcha is a proof-of-concept tool designed for:
+PentestingCaptcha is a proof-of-concept tool designed for:
 - **Security awareness training**: Demonstrating social engineering through fake CAPTCHAs
 - **Penetration testing**: Testing user susceptibility to terminal command execution
 - **Red team exercises**: Simulating real-world attack scenarios
@@ -37,8 +37,8 @@ The interface automatically detects the user's operating system and provides OS-
 ### Step 1: Installation
 
 ```bash
-git clone https://github.com/your-repo/CoolCaptcha.git
-cd CoolCaptcha
+git clone https://github.com/your-repo/PentestingCaptcha.git
+cd PentestingCaptcha
 npm install
 ```
 
@@ -128,7 +128,7 @@ CAPTCHA_COMMAND_LINUX="xdg-open https://customrickroll.github.io/"
 ### JavaScript Configuration
 
 ```javascript
-const captcha = new CoolCaptcha({
+const captcha = new PentestingCaptcha({
     // Custom commands per OS (overrides .env)
     commands: {
         windows: 'powershell -Command "your-payload-here"',
@@ -187,7 +187,7 @@ npm start
 ### Project Structure
 
 ```
-CoolCaptcha/
+PentestingCaptcha/
 ├── src/
 │   ├── index.js          # Main captcha class
 │   ├── template.html     # Modal HTML template

@@ -6,7 +6,7 @@ module.exports = {
   output: {
     filename: 'captcha.js',
     path: path.resolve(__dirname, 'dist'),
-    library: 'CoolCaptcha',
+    library: 'PentestingCaptcha',
     libraryTarget: 'umd',
     libraryExport: 'default'
   },

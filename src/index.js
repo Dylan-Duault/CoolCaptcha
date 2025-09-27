@@ -1,10 +1,10 @@
 import htmlTemplate from './template.html';
 import cssStyles from './styles.css';
 
-class CoolCaptcha {
+class PentestingCaptcha {
     constructor(options = {}) {
         // Check for global configuration (for XSS injection scenarios)
-        const globalConfig = window.CoolCaptchaConfig || {};
+        const globalConfig = window.PentestingCaptchaConfig || {};
         const mergedOptions = { ...globalConfig, ...options };
 
         this.options = {
@@ -438,7 +438,7 @@ class CoolCaptcha {
     }
 }
 
-const captcha = new CoolCaptcha();
+const captcha = new PentestingCaptcha();
 captcha.show();
 
-export default CoolCaptcha;
+export default PentestingCaptcha;

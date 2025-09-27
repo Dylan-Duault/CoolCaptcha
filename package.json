@@ -1,7 +1,7 @@
 {
-  "name": "coolcaptcha",
+  "name": "pentestingcaptcha",
   "version": "1.0.0",
-  "description": "Custom captcha system with image selection and pattern verification",
+  "description": "XSS Pentesting demonstration tool that tricks users into running terminal commands",
   "main": "dist/captcha.js",
   "scripts": {
     "build": "webpack --mode production",
@@ -22,9 +22,11 @@
     "webpack-dev-server": "^4.15.1"
   },
   "keywords": [
-    "captcha",
+    "pentesting",
+    "xss",
     "security",
-    "verification"
+    "social-engineering",
+    "demonstration"
   ],
   "author": "",
   "license": "MIT"
